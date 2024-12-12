@@ -19,6 +19,7 @@ package proxy
 
 import (
 	"context"
+	"os"
 
 	"mosn.io/api"
 	"mosn.io/mosn/pkg/protocol"
@@ -26,6 +27,14 @@ import (
 	"mosn.io/pkg/protocol/http"
 	"mosn.io/pkg/variable"
 )
+
+var defaultRetryWhenConnFail = false
+
+func init() {
+	if os.Getenv("ENABLE_RETRY_POLICY") == "true" {
+		defaultRetryWhenConnFail = true
+	}
+}
 
 type retryState struct {
 	retryPolicy      api.RetryPolicy
@@ -132,7 +141,7 @@ func (r *retryState) doRetryCheck(ctx context.Context, headers types.HeaderMap, 
 		// more policy
 	} else {
 		// default support connectionFailed retry
-		if reason == types.StreamConnectionFailed {
+		if reason == types.StreamConnectionFailed && defaultRetryWhenConnFail {
 			return true
 		}
 	}
