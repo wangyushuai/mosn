@@ -302,7 +302,9 @@ func (conn *clientStreamConnection) serve() {
 		err := s.response.Read(conn.br)
 		if err != nil {
 			if s != nil {
-				log.Proxy.Errorf(s.connection.context, "[stream] [http] client stream connection wait response error: %s", err)
+				log.Proxy.Errorf(s.connection.context,
+					"[stream] [http] client stream connection wait response error: %s, local addr: %s, remote addr: %s",
+					err, s.connection.streamConnection.conn.LocalAddr().String(), s.connection.streamConnection.conn.RemoteAddr().String())
 				reason := conn.resetReason
 				if reason == "" {
 					reason = types.StreamRemoteReset
@@ -313,7 +315,8 @@ func (conn *clientStreamConnection) serve() {
 		}
 
 		if log.Proxy.GetLogLevel() >= log.DEBUG {
-			log.Proxy.Debugf(s.stream.ctx, "[stream] [http] receive response, requestId = %v", s.stream.id)
+			log.Proxy.Debugf(s.stream.ctx, "[stream] [http] receive response, requestId = %v, local addr: %s, remote addr: %s",
+				s.stream.id, s.connection.streamConnection.conn.LocalAddr().String(), s.connection.streamConnection.conn.RemoteAddr().String())
 		}
 
 		// 2. response processing
