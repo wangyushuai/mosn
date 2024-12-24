@@ -26,7 +26,9 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -46,10 +48,18 @@ import (
 	"mosn.io/pkg/utils"
 )
 
+var disableKeepAlive = false
+
 // TODO: move it to main
 func init() {
 	protocol.RegisterProtocolConfigHandler(protocol.HTTP1, streamConfigHandler)
 	protocol.RegisterProtocol(protocol.HTTP1, NewConnPool, &StreamConnFactory{}, protocol.GetStatusCodeMapping{})
+	if value := os.Getenv("DISABLE_KEEPALIVE"); value != "" {
+		disableKeepAlive = strings.EqualFold(value, "true")
+		if log.DefaultLogger.GetLogLevel() >= log.INFO {
+			log.DefaultLogger.Infof("[featuregate][config] disableKeepAlive=[%t]", disableKeepAlive)
+		}
+	}
 }
 
 const defaultMaxRequestBodySize = 4 * 1024 * 1024
@@ -308,7 +318,7 @@ func (conn *clientStreamConnection) serve() {
 
 		// 2. response processing
 		resetConn := false
-		if s.response.ConnectionClose() {
+		if s.response.ConnectionClose() || disableKeepAlive {
 			resetConn = true
 		}
 
