@@ -155,7 +155,7 @@ func (p *connPool) getAvailableClient(ctx context.Context) (*activeClient, types
 		p.availableClients[n] = nil
 		p.availableClients = p.availableClients[:n]
 		if disableKeepAlive && log.Proxy.GetLogLevel() >= log.INFO {
-			log.Proxy.Debugf(ctx, "[http][coonpool] connection reuse,local addr=%s, remote addr=%s",
+			log.Proxy.Infof(ctx, "[http][coonpool][reuse] connection,local addr=%s, remote addr=%s",
 				c.host.Connection.LocalAddr(), c.host.Connection.RemoteAddr())
 		}
 		return c, ""
