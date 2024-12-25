@@ -54,7 +54,7 @@ func NewConnPool(ctx context.Context, host types.Host) types.ConnectionPool {
 	}
 	pool.host.Store(host)
 
-	if pool.statReport {
+	if pool.statReport || disableKeepAlive {
 		pool.report()
 	}
 
@@ -154,7 +154,7 @@ func (p *connPool) getAvailableClient(ctx context.Context) (*activeClient, types
 		c := p.availableClients[n]
 		p.availableClients[n] = nil
 		p.availableClients = p.availableClients[:n]
-		if log.Proxy.GetLogLevel() >= log.DEBUG {
+		if disableKeepAlive && log.Proxy.GetLogLevel() >= log.INFO {
 			log.Proxy.Debugf(ctx, "[http][coonpool] connection reuse,local addr=%s, remote addr=%s",
 				c.host.Connection.LocalAddr(), c.host.Connection.RemoteAddr())
 		}
