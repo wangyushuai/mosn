@@ -154,6 +154,10 @@ func (p *connPool) getAvailableClient(ctx context.Context) (*activeClient, types
 		c := p.availableClients[n]
 		p.availableClients[n] = nil
 		p.availableClients = p.availableClients[:n]
+		if log.Proxy.GetLogLevel() >= log.DEBUG {
+			log.Proxy.Debugf(ctx, "[http][coonpool] connection reuse,local addr=%s, remote addr=%s",
+				c.host.Connection.LocalAddr(), c.host.Connection.RemoteAddr())
+		}
 		return c, ""
 	}
 }
@@ -227,6 +231,10 @@ func (p *connPool) onStreamDestroy(client *activeClient) {
 	p.clientMux.Lock()
 	if !client.closed {
 		p.availableClients = append(p.availableClients, client)
+		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
+			log.DefaultLogger.Debugf("[stream][http][coonpool] put client into pool,ID=%d, local addr=%s, remote addr=%s ",
+				client.client.ConnID(), client.host.Connection.LocalAddr(), client.host.Connection.RemoteAddr())
+		}
 	}
 	p.clientMux.Unlock()
 }
@@ -313,6 +321,10 @@ func (ac *activeClient) OnEvent(event api.ConnectionEvent) {
 
 // types.StreamEventListener
 func (ac *activeClient) OnDestroyStream() {
+	if ac.closed && ac.closeConn && log.DefaultLogger.GetLogLevel() >= log.INFO {
+		log.DefaultLogger.Infof("[stream] [http] connection had been close,Connection = %d,local addr=%s, remote addr=%s",
+			ac.client.ConnID(), ac.host.Connection.LocalAddr(), ac.host.Connection.RemoteAddr())
+	}
 	if !ac.closed && ac.closeConn {
 		ac.client.Close()
 	}
@@ -322,9 +334,9 @@ func (ac *activeClient) OnDestroyStream() {
 func (ac *activeClient) OnResetStream(reason types.StreamResetReason) {
 	ac.pool.onStreamReset(ac, reason)
 	if reason == types.StreamLocalReset && !ac.closed {
-		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-			log.DefaultLogger.Debugf("[stream] [http] stream local reset, blow client away also, Connection = %d",
-				ac.client.ConnID())
+		if log.DefaultLogger.GetLogLevel() >= log.INFO {
+			log.DefaultLogger.Infof("[stream] [http] stream local reset,Connection = %d, reason = %s, local addr=%s, remote addr=%s",
+				ac.client.ConnID(), reason, ac.host.Connection.LocalAddr(), ac.host.Connection.RemoteAddr())
 		}
 		ac.closeConn = true
 	}

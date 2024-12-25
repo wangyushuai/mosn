@@ -21,6 +21,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"mosn.io/mosn/pkg/log"
 	"mosn.io/mosn/pkg/types"
 )
 
@@ -75,6 +76,9 @@ func (s *BaseStream) ResetStream(reason types.StreamResetReason) {
 
 func (s *BaseStream) DestroyStream() {
 	if !atomic.CompareAndSwapUint32(&s.state, streamStateReset, streamStateDestroying) {
+		if log.DefaultLogger.GetLogLevel() >= log.WARN {
+			log.DefaultLogger.Infof("[stream] had been destroy,state=%d", &s.state)
+		}
 		return
 	}
 	s.Lock()

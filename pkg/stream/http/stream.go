@@ -706,7 +706,8 @@ func (s *clientStream) endStream() {
 	err := s.doSend()
 
 	if err != nil {
-		log.Proxy.Errorf(s.stream.ctx, "[stream] [http] send client request error: %+v", err)
+		log.Proxy.Errorf(s.stream.ctx, "[stream] [http] send client request error: %+v, local addr: %s, remote addr: %s",
+			err, s.connection.conn.LocalAddr().String(), s.connection.conn.RemoteAddr().String())
 
 		if err == types.ErrConnectionHasClosed {
 			s.ResetStream(types.StreamConnectionFailed)
@@ -717,7 +718,8 @@ func (s *clientStream) endStream() {
 	}
 
 	if log.Proxy.GetLogLevel() >= log.DEBUG {
-		log.Proxy.Debugf(s.stream.ctx, "[stream] [http] send client request, requestId = %v", s.stream.id)
+		log.Proxy.Debugf(s.stream.ctx, "[stream] [http] send client request, requestId = %v, local addr: %s, remote addr: %s",
+			s.stream.id, s.connection.conn.LocalAddr().String(), s.connection.conn.RemoteAddr().String())
 	}
 	s.connection.requestSent <- true
 }
