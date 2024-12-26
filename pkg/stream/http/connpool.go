@@ -211,6 +211,10 @@ func (p *connPool) onConnectionEvent(client *activeClient, event api.ConnectionE
 
 		// set closed flag if not available
 		client.closed = true
+		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
+			log.DefaultLogger.Debugf("[http] [connpool] receive close event, client closed, type: %s, local addr: %s, remote addr: %s",
+				event, client.host.Connection.LocalAddr(), client.host.Connection.RemoteAddr())
+		}
 	} else if event == api.ConnectTimeout {
 		host.HostStats().UpstreamRequestTimeout.Inc(1)
 		host.ClusterInfo().Stats().UpstreamRequestTimeout.Inc(1)
@@ -326,6 +330,10 @@ func (ac *activeClient) OnDestroyStream() {
 			ac.client.ConnID(), ac.host.Connection.LocalAddr(), ac.host.Connection.RemoteAddr())
 	}
 	if !ac.closed && ac.closeConn {
+		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
+			log.DefaultLogger.Debugf("[stream] [http][connpool] prepare to close conn,Connection = %d,local addr=%s, remote addr=%s",
+				ac.client.ConnID(), ac.host.Connection.LocalAddr(), ac.host.Connection.RemoteAddr())
+		}
 		ac.client.Close()
 	}
 	ac.pool.onStreamDestroy(ac)

@@ -867,6 +867,10 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 	}
 
 	if !atomic.CompareAndSwapUint32(&c.closed, 0, 1) {
+		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
+			log.DefaultLogger.Debugf("[network] [close connection] onnection (conn) has already been closed. No need to close it again. Local Address is %s  Remote Address is  %s, eventType is = %s",
+				c.LocalAddr(), c.RemoteAddr(), eventType)
+		}
 		return nil
 	}
 
@@ -878,7 +882,8 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 	// shutdown read first
 	if rawc, ok := c.rawConnection.(*net.TCPConn); ok {
 		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-			log.DefaultLogger.Debugf("[network] [close connection] Close TCP Conn, Remote Address is = %s, eventType is = %s", rawc.RemoteAddr(), eventType)
+			log.DefaultLogger.Debugf("[network] [close connection] Close TCP Conn, , eventType is = %s, local Address is %s, remote address is  %s",
+				eventType, rawc.LocalAddr(), rawc.RemoteAddr())
 		}
 		rawc.CloseRead()
 	}
@@ -906,7 +911,8 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 	c.rawConnection.Close()
 
 	if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-		log.DefaultLogger.Debugf("[network] [close connection] Close connection %d, event %s, type %s", c.id, eventType, ccType)
+		log.DefaultLogger.Debugf("[network] [close connection] Close connection %d, event %s, type %s, Local Address is %s,Remote Address is  %s",
+			c.id, eventType, ccType, c.LocalAddr(), c.RemoteAddr())
 	}
 
 	c.updateReadBufStats(0, 0)
