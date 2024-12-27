@@ -105,6 +105,8 @@ type connection struct {
 	needTransfer bool
 	useWriteLoop bool
 
+	closeMutex *utils.Mutex
+
 	// eventloop related
 	poll struct {
 		eventLoop        *eventLoop
@@ -141,6 +143,7 @@ func NewServerConnection(ctx context.Context, rawc net.Conn, stopChan chan struc
 		readCollector:  metrics.NilCounter{},
 		writeCollector: metrics.NilCounter{},
 		tryMutex:       utils.NewMutex(),
+		closeMutex:     utils.NewMutex(),
 	}
 
 	// store fd
@@ -860,6 +863,8 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 			log.DefaultLogger.Errorf("[network] [close connection] panic %v\n%s", p, string(debug.Stack()))
 		}
 	}()
+	c.closeMutex.TryLock(types.DefaultConnCloseTimeout)
+	defer c.closeMutex.Unlock()
 
 	if ccType == api.FlushWrite {
 		c.Write(buffer.NewIoBufferEOF())
@@ -882,7 +887,7 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 	// shutdown read first
 	if rawc, ok := c.rawConnection.(*net.TCPConn); ok {
 		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-			log.DefaultLogger.Debugf("[network] [close connection] Close TCP Conn, , eventType is = %s, local Address is %s, remote address is  %s",
+			log.DefaultLogger.Debugf("[network] [close connection] Close TCP Conn, eventType is = %s, local Address is %s, remote address is  %s",
 				eventType, rawc.LocalAddr(), rawc.RemoteAddr())
 		}
 		rawc.CloseRead()
@@ -911,7 +916,7 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 	c.rawConnection.Close()
 
 	if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-		log.DefaultLogger.Debugf("[network] [close connection] Close connection %d, event %s, type %s, Local Address is %s,Remote Address is  %s",
+		log.DefaultLogger.Debugf("[network] [close connection] Close connection %d finished, event %s, type %s, Local Address is %s,Remote Address is  %s",
 			c.id, eventType, ccType, c.LocalAddr(), c.RemoteAddr())
 	}
 
@@ -1090,6 +1095,7 @@ func newClientConnection(connectTimeout time.Duration, tlsMng types.TLSClientCon
 			writeCollector: metrics.NilCounter{},
 			tlsMng:         tlsMng,
 			tryMutex:       utils.NewMutex(),
+			closeMutex:     utils.NewMutex(),
 		},
 		connectTimeout: connectTimeout,
 	}

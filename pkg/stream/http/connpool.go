@@ -326,12 +326,12 @@ func (ac *activeClient) OnEvent(event api.ConnectionEvent) {
 // types.StreamEventListener
 func (ac *activeClient) OnDestroyStream() {
 	if ac.closed && ac.closeConn && log.DefaultLogger.GetLogLevel() >= log.INFO {
-		log.DefaultLogger.Infof("[stream] [http] connection had been close,Connection = %d,local addr=%s, remote addr=%s",
+		log.DefaultLogger.Infof("[stream] [http] connection had been close, connID = %d,local addr=%s, remote addr=%s",
 			ac.client.ConnID(), ac.host.Connection.LocalAddr(), ac.host.Connection.RemoteAddr())
 	}
 	if !ac.closed && ac.closeConn {
 		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-			log.DefaultLogger.Debugf("[stream] [http][connpool] prepare to close conn,Connection = %d,local addr=%s, remote addr=%s",
+			log.DefaultLogger.Debugf("[stream] [http] [connpool] prepare to close conn, connID = %d, local addr=%s, remote addr=%s",
 				ac.client.ConnID(), ac.host.Connection.LocalAddr(), ac.host.Connection.RemoteAddr())
 		}
 		ac.client.Close()
