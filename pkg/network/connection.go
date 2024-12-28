@@ -865,6 +865,8 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 	}()
 	if c.closeMutex.TryLock(types.DefaultConnCloseTimeout) {
 		defer c.closeMutex.Unlock()
+	} else {
+		log.DefaultLogger.Warnf("[network] [close connection] Failed to acquire lock timeout")
 	}
 
 	if ccType == api.FlushWrite {
