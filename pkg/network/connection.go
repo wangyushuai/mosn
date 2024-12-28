@@ -863,8 +863,9 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 			log.DefaultLogger.Errorf("[network] [close connection] panic %v\n%s", p, string(debug.Stack()))
 		}
 	}()
-	c.closeMutex.TryLock(types.DefaultConnCloseTimeout)
-	defer c.closeMutex.Unlock()
+	if c.closeMutex.TryLock(types.DefaultConnCloseTimeout) {
+		defer c.closeMutex.Unlock()
+	}
 
 	if ccType == api.FlushWrite {
 		c.Write(buffer.NewIoBufferEOF())
