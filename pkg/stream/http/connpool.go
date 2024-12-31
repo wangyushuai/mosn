@@ -267,8 +267,8 @@ func (p *connPool) report() {
 	utils.GoWithRecover(func() {
 		for {
 			p.clientMux.Lock()
-			if log.DefaultLogger.GetLogLevel() >= log.INFO {
-				log.DefaultLogger.Infof("[stream] [http] [connpool] pool = %s, available clients=%d, total clients=%d\n", p.Host().AddressString(), len(p.availableClients), atomic.LoadUint64(&p.totalClientCount))
+			if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
+				log.DefaultLogger.Debugf("[stream] [http] [connpool] pool = %s, available clients=%d, total clients=%d\n", p.Host().AddressString(), len(p.availableClients), atomic.LoadUint64(&p.totalClientCount))
 			}
 			p.clientMux.Unlock()
 			time.Sleep(time.Second)
