@@ -876,7 +876,7 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 
 	if !atomic.CompareAndSwapUint32(&c.closed, 0, 1) {
 		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-			log.DefaultLogger.Debugf("[network] [close connection] onnection (conn) has already been closed. No need to close it again. Local Address is %s  Remote Address is  %s, eventType is = %s",
+			log.DefaultLogger.Debugf("[network] [close connection] connection (conn) has already been closed. No need to close it again. Local Address is %s  Remote Address is  %s, eventType is = %s",
 				c.LocalAddr(), c.RemoteAddr(), eventType)
 		}
 		return nil
