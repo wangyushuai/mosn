@@ -866,7 +866,8 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 	if c.closeMutex.TryLock(types.DefaultConnCloseTimeout) {
 		defer c.closeMutex.Unlock()
 	} else {
-		log.DefaultLogger.Warnf("[network] [close connection] Failed to acquire lock timeout")
+		log.DefaultLogger.Warnf("[network] [close connection] failed to acquire lock timeout. Local address is %s, remote address is %s",
+			c.LocalAddr(), c.RemoteAddr())
 	}
 
 	if ccType == api.FlushWrite {
@@ -876,7 +877,7 @@ func (c *connection) Close(ccType api.ConnectionCloseType, eventType api.Connect
 
 	if !atomic.CompareAndSwapUint32(&c.closed, 0, 1) {
 		if log.DefaultLogger.GetLogLevel() >= log.DEBUG {
-			log.DefaultLogger.Debugf("[network] [close connection] connection (conn) has already been closed. No need to close it again. Local Address is %s  Remote Address is  %s, eventType is = %s",
+			log.DefaultLogger.Debugf("[network] [close connection] conn has already been closed. No need to close it again. Local address is %s ,remote address is  %s, eventType is = %s",
 				c.LocalAddr(), c.RemoteAddr(), eventType)
 		}
 		return nil

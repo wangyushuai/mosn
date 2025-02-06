@@ -193,7 +193,7 @@ const (
 	DefaultIdleTimeout      = 90 * time.Second
 	DefaultUDPIdleTimeout   = 5 * time.Second
 	DefaultUDPReadTimeout   = 1 * time.Second
-	DefaultConnCloseTimeout = 1 * time.Second
+	DefaultConnCloseTimeout = 3 * time.Second
 )
 
 // ConnectionHandler contains the listeners for a mosn server
